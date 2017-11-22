@@ -1,31 +1,38 @@
-# leaflet
+leaflet
+=======
+
 Dead simple I2P SAM library. Download now and enjoy Garlic Routing today.
 
-## How to use
+How to use
+----------
 
-[Learn how to create identities, connect to a remote destination and accept data streams.](leaflet/examples/basic.py)
+`Learn how to create identities, connect to a remote destination and accept data streams. <https://github.com/MuxZeroNet/leaflet/blob/master/leaflet/examples/basic.py>`_
 
-## How to play
+How to play
+-----------
 
 Make sure you have two terminal windows open.
 
 Script for terminal window #1.
 
-```python
-from leaflet.examples import basic
-basic.accept()
-# it will print out its server address
-```
+::
+
+    from leaflet.examples import basic
+    basic.accept()
+    # it will print out its server address
 
 Script for terminal window #2.
 
-```python
-from leaflet.examples import basic
-basic.their_b32 = 'PUT THE SERVER ADDRESS HERE' + '.b32.i2p'
-basic.hi_there()
-```
+::
 
-## Caveat
+
+    from leaflet.examples import basic
+    basic.their_b32 = 'PUT THE SERVER ADDRESS HERE' + '.b32.i2p'
+    basic.hi_there()
+
+
+Caveat
+------
 
 - Python 3 only. Nobody writes new code in Python 2 in 2017.
 
