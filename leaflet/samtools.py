@@ -65,7 +65,7 @@ def sam_readline(sock, partial = None):
         try:
             c = sock.recv(1)
             if not c:
-                raise EOFError('Partial response')
+                raise EOFError('SAM connection died. Partial response %r %r' % (partial, response))
             elif c == b'\n':
                 break
             else:
@@ -84,6 +84,11 @@ def sam_readline(sock, partial = None):
         # print('<--', repr(partial), '+', response, exception)
         return (partial + response.decode('ascii'), exception)
 
+
+def make_reply_reader(sock):
+    while True:
+        yield from line_generator(sock)
+
 def line_generator(sock):
     partial = ''
     partial, exc = sam_readline(sock, partial)
@@ -91,12 +96,6 @@ def line_generator(sock):
         yield exc
         partial, exc = sam_readline(sock, partial)
     yield partial
-
-def make_reply_reader(sock):
-    while True:
-        line_gen = line_generator(sock)
-        yield from line_gen
-
 
 
 class SamReply(object):
@@ -148,15 +147,18 @@ def sam_parse_reply(line):
 
 def sam_send(sock, line):
     """Send a line to the SAM controller, but don't read it"""
-    line = bytes(line, 'ascii') + b' \n'
+    line = bytes(line, encoding='ascii') + b' \n'
     # print('-->', line)
     sock.sendall(line)
 
-def sam_cmd(sock, line):
+def sam_cmd(sock, line, parse=True):
     """Send a line to the SAM controller, returning the parsed response"""
     sam_send(sock, line)
     reply_line = sam_readline(sock)
-    return sam_parse_reply(reply_line)
+    if parse:
+        return sam_parse_reply(reply_line)
+    else:
+        return reply_line
 
 
 ########## handshake ##########
@@ -278,9 +280,11 @@ def stream_accept(nickname):
         raise HandshakeError('Failed to accept %r because %r' % (nickname, reply))
 
 def parse_accept_dest():
-    line = yield ''
-    dest = Dest(line, encoding='base64')
-    yield dest
+    line = yield None
+    space_index = line.find(' ')
+    if space_index >= 0:
+        line = line[0:space_index]
+    yield Dest(line, encoding='base64')
 
 
 

@@ -66,15 +66,19 @@ def accept():
     # create our "IP Address" so that people can find us
     with controller.create_dest() as our_dest:
         print('Server address: ' + our_dest.base32)
-        # SAM will write to the conn socket when a message is available
-        conn = our_dest.register_accept()
+        while True:
+            # SAM will write to the conn socket when a message is available
+            # this line will not block
+            conn = our_dest.register_accept()
+            # `conn.parse_headers` will block until a message comes in
+            # now a message comes in, but first we need to strip the SAM headers
+            addr = conn.parse_headers()
+            _handler(addr, conn)
 
-        # `conn.recv` and `conn.parse_headers` will block until a message comes in
-        # now a message comes in, but first we need to strip the SAM headers
-        addr = conn.parse_headers()
-        # now we can read the real message
-        request = conn.recv(4096)
-        print('Received a message from %r: %r' % (addr, request))
-        # reply
-        conn.sendall(b'Hello, how are you?')
-        conn.close()
+def _handler(addr, conn):
+    # now we can read the real message
+    request = conn.recv(4096)
+    print('Received a message from %r: %r' % (addr, request))
+    # reply
+    conn.sendall(b'Hello, how are you?')
+    conn.close()
