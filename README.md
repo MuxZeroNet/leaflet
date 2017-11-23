@@ -5,7 +5,7 @@ Dead simple I2P SAM library. Download now and enjoy Garlic Routing today.
 
 [Learn how to create identities, connect to a remote destination and accept data streams.](leaflet/examples/basic.py)
 
-## How to play
+## An example to play with
 
 Make sure you have two terminal windows open.
 
@@ -29,10 +29,6 @@ basic.hi_there()
 
 - Python 3 only. Nobody writes new code in Python 2 in 2017.
 
-- If you like to monkey-patch your modules, then you are on your own.
-
-- Leaflet is based on i2p.socket but it is no longer a drop-in socket module replacement.
+- Leaflet is based on `i2p.socket` but it is no longer a drop-in socket module replacement. If you like to monkey-patch your modules, then you are on your own.
 
 - Stream/TCP sockets only at this moment. Support for datagram and raw socket is under construction.
-
-- Could freak out if used with non-blocking sockets. I probably over-engineered the API.
