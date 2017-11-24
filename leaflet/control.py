@@ -1,5 +1,5 @@
 from . import samtools
-from .usersocket import WrappedSocket
+from .usersocket import StreamSocket, DatagramSocket
 from socket import SHUT_RDWR
 
 def sam_handshake(func):
@@ -50,29 +50,39 @@ class Controller(object):
         return samtools.lookup(sam_sock, name, self.ns_cache)
 
     @sam_handshake
-    def create_dest(self, sam_sock, name = None, sock_type='stream', i2cp = None):
-        if sock_type not in ('stream',):
-            raise NotImplementedError('Socket type %s is not implemented' % repr(sock_type))
+    def create_dest(self, sam_sock, name = None, style='stream', forward = None, i2cp = None):
+        if style not in ('stream', 'datagram', 'dgram'):
+            raise NotImplementedError('Socket type %s is not implemented' % repr(style))
+
         if not name:
             name = samtools.random_name()
         else:
             samtools.check_name(name)
-        if sock_type == 'dgram':
-            if not i2cp or 'PORT' not in i2cp:
-                raise ValueError('For datagram, you must bind to a port')
-        return OurDest(self, sock_type, name, i2cp or {})
+
+        if style == 'dgram':
+            style = 'datagram'
+
+        if isinstance(forward, int):
+            forward = ('127.0.0.1', forward)
+        else:
+            samtools.check_forward(forward)
+
+        return OurDest(controller=self, name=name, style=style, forward=forward, i2cp=i2cp or {})
 
 
 class OurDest(samtools.Dest):
-    __slots__ = ('name', 'sam_sock', 'controller')
+    __slots__ = ('name', 'sam_sock', 'controller', 'style', 'forward')
 
-    def __init__(self, controller, sock_type, nickname, i2cp_options):
-        self.name = nickname
+    def __init__(self, controller, name, style, forward, i2cp):
         self.controller = controller
+        self.name = name
+        self.style = style
+        self.forward = forward
 
+        i2cp['HOST'], i2cp['PORT'] = forward
         sig_type = self.default_sig_type
         sock = samtools.handshake(*controller.handshake_args)
-        keyfile = samtools.session_create(sock, sock_type, sig_type, nickname, i2cp_options)
+        keyfile = samtools.session_create(sock, style, sig_type, name, i2cp)
         self.sam_sock = sock
 
         super().__init__(keyfile, sig_type=sig_type, encoding='base64', private=True)
@@ -86,12 +96,26 @@ class OurDest(samtools.Dest):
         dest = self.controller.lookup(other)
         s = samtools.handshake(*self.handshake_args)
         parser = samtools.stream_connect(self.name, dest)
-        return WrappedSocket(s, self.controller, parser)
+        return StreamSocket(s, self.controller, parser)
 
     def register_accept(self):
         s = samtools.handshake(*self.handshake_args)
         parser = samtools.stream_accept(self.name)
-        return WrappedSocket(s, self.controller, parser)
+        return StreamSocket(s, self.controller, parser)
+
+    def bind(self):
+        print(self.forward)
+        if self.forward:
+            return self._bind_datagram()
+        else:
+            return self._bind_legacy_datagram()
+
+    def _bind_datagram(self):
+        sock = samtools.bind_datagram(self.forward)
+        return DatagramSocket(sock, self.controller, self.name, parser=None)
+
+    def _bind_legacy_datagram(self):
+        raise NotImplementedError('Legacy DATAGRAM SEND is not implemented')
 
     def close(self):
         if self.sam_sock:

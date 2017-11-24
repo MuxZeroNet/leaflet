@@ -15,14 +15,14 @@ def create_id():
     # when our Destination gets garbage-collected, it is shutdown and unreachable
 
 
-def hi_there():
+def hi_there(server_addr = None):
     # connect to SAM
     controller = Controller(sam_api=('127.0.0.1', 7656))
     # create our "IP Address" so that they can reply
     our_dest = controller.create_dest()
     print('Our address: ' + our_dest.base32)
     # perform NS lookup to get their full Destination (optional)
-    their_dest = controller.lookup(their_b32)
+    their_dest = controller.lookup(server_addr or their_b32)
     print('Their full destination: ' + their_dest.base64)
 
     # connect to their server
@@ -40,7 +40,7 @@ def hi_there():
     our_dest.close()
 
 
-def send_and_disappear():
+def send_and_disappear(server_addr = None):
     # test SAM connection
     controller = Controller()
 
@@ -48,7 +48,7 @@ def send_and_disappear():
     # to create throw-away Destinations
     with controller.create_dest() as our_dest:
         # connect to a remote destination and send our message
-        sock = our_dest.connect(their_b32)
+        sock = our_dest.connect(server_addr or their_b32)
         # SAM will give us response headers when the connection is successful
         sam_reply = sock.parse_headers()
         # now we can send data
