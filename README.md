@@ -5,9 +5,11 @@ Dead simple I2P SAM library. Download now and enjoy Garlic Routing today.
 
 [Learn how to create identities, connect to a remote destination and accept data streams.](leaflet/examples/basic.py)
 
-## An example to play with
+## Examples to play with
 
-Make sure you have two terminal windows open.
+To run the demo, make sure you have two terminal windows open.
+
+__Hello, how are you?__
 
 Script for terminal window #1.
 
@@ -21,8 +23,24 @@ Script for terminal window #2.
 
 ```python
 from leaflet.examples import basic
-basic.their_b32 = 'PUT THE SERVER ADDRESS HERE' + '.b32.i2p'
-basic.hi_there()
+basic.hi_there('PUT THE SERVER ADDRESS HERE' + '.b32.i2p')
+```
+
+__Nevermind, you probably wouldn't get it.__
+
+Script for terminal window #1
+
+```python
+from leaflet.examples import datagram
+datagram.serve()
+# wait until it prints out its server address
+```
+
+Script for terminal window #2:
+
+```python
+from leaflet.examples import datagram
+datagram.hi_there('PUT THE SERVER ADDRESS HERE' + '.b32.i2p')
 ```
 
 ## Caveat
@@ -31,4 +49,4 @@ basic.hi_there()
 
 - Leaflet is based on `i2p.socket` but it is no longer a drop-in socket module replacement. If you like to monkey-patch your modules, then you are on your own.
 
-- Stream/TCP sockets only at this moment. Support for datagram and raw socket is under construction.
+- No RAW socket support. You aren't gonna need it anyway.
