@@ -1,9 +1,11 @@
 # leaflet
-Dead simple I2P SAM library. Download now and enjoy Garlic Routing today.
+Dead simple I2P SAM library. Download now and enjoy Garlic Routing today!
 
 ## How to use
 
-[Learn how to create identities, connect to a remote destination and accept data streams.](leaflet/examples/basic.py)
+[Create identities, connect to a remote destination and accept data streams.](leaflet/examples/basic.py)
+
+[Write a datagram client and a datagran server.](leaflet/examples/datagram.py)
 
 ## Examples to play with
 
@@ -13,17 +15,15 @@ __Hello, how are you?__
 
 Script for terminal window #1.
 
-```python
-from leaflet.examples import basic
-basic.accept()
+```bash
+python3 -m leaflet.examples.basic server
 # it will print out its server address
 ```
 
 Script for terminal window #2.
 
 ```python
-from leaflet.examples import basic
-basic.hi_there('PUT THE SERVER ADDRESS HERE' + '.b32.i2p')
+python3 -m leaflet.examples.basic client serveraddress.b32.i2p
 ```
 
 __Nevermind, you probably wouldn't get it.__
@@ -31,16 +31,14 @@ __Nevermind, you probably wouldn't get it.__
 Script for terminal window #1
 
 ```python
-from leaflet.examples import datagram
-datagram.serve()
+python3 -m leaflet.examples.datagram server
 # wait until it prints out its server address
 ```
 
 Script for terminal window #2:
 
 ```python
-from leaflet.examples import datagram
-datagram.hi_there('PUT THE SERVER ADDRESS HERE' + '.b32.i2p')
+python3 -m leaflet.examples.datagram client serveraddress.b32.i2p
 ```
 
 ## Caveat
