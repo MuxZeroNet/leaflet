@@ -49,8 +49,14 @@ class Controller(object):
     def _lookup(self, sam_sock, name):
         return samtools.lookup(sam_sock, name, self.ns_cache)
 
-    @sam_handshake
-    def create_dest(self, sam_sock, name = None, style='stream', forward = None, i2cp = None):
+    def create_dest(self, name = None, style='stream', forward = None, i2cp = None):
+        return OurDest(controller=self, name=name, style=style, forward=forward, i2cp=i2cp)
+
+
+class OurDest(samtools.Dest):
+    __slots__ = ('name', 'sam_sock', 'controller', 'style', 'forward')
+
+    def __init__(self, controller, name, style, forward, i2cp):
         if style not in ('stream', 'datagram', 'dgram'):
             raise NotImplementedError('Socket type %s is not implemented' % repr(style))
 
@@ -62,24 +68,23 @@ class Controller(object):
         if style == 'dgram':
             style = 'datagram'
 
-        if isinstance(forward, int):
-            forward = ('127.0.0.1', forward)
-        else:
-            samtools.check_forward(forward)
+        if forward is not None:
+            if isinstance(forward, int):
+                forward = ('127.0.0.1', forward)
+            else:
+                samtools.check_forward(forward)
 
-        return OurDest(controller=self, name=name, style=style, forward=forward, i2cp=i2cp or {})
+        self.__real_init(controller=controller, name=name, style=style, forward=forward, i2cp=i2cp or {})
 
 
-class OurDest(samtools.Dest):
-    __slots__ = ('name', 'sam_sock', 'controller', 'style', 'forward')
-
-    def __init__(self, controller, name, style, forward, i2cp):
+    def __real_init(self, controller, name, style, forward, i2cp):
         self.controller = controller
         self.name = name
         self.style = style
         self.forward = forward
 
-        i2cp['HOST'], i2cp['PORT'] = forward
+        if forward:
+            i2cp['HOST'], i2cp['PORT'] = forward
         sig_type = self.default_sig_type
         sock = samtools.handshake(*controller.handshake_args)
         keyfile = samtools.session_create(sock, style, sig_type, name, i2cp)
@@ -104,7 +109,6 @@ class OurDest(samtools.Dest):
         return StreamSocket(s, self.controller, parser)
 
     def bind(self):
-        print(self.forward)
         if self.forward:
             return self._bind_datagram()
         else:

@@ -1,4 +1,5 @@
 from leaflet import Controller
+import sys
 
 
 their_b32 = 'ob2xiidzn52xeicjgjicazlfobzws5dfebqwizdsebugk4tffyxa.b32.i2p'
@@ -65,7 +66,7 @@ def accept():
 
     # create our "IP Address" so that people can find us
     with controller.create_dest() as our_dest:
-        print('Server address: ' + our_dest.base32)
+        print('Server address: ' + our_dest.base32 + '.b32.i2p')
         while True:
             # SAM will write to the conn socket when a message is available
             # this line will not block
@@ -82,3 +83,21 @@ def _handler(addr, conn):
     # reply
     conn.sendall(b'Hello, how are you?')
     conn.close()
+
+
+
+if __name__ == '__main__':
+    help_doc = '\n'.join((
+        'Usage:',
+        '    python3 -m leaflet.examples.basic server',
+        '    python3 -m leaflet.examples.basic client <server.b32.i2p>',))
+    if len(sys.argv) == 1:
+        print(help_doc)
+    else:
+        action = sys.argv[1]
+        if action == 'server':
+            accept()
+        elif action == 'client':
+            hi_there(sys.argv[2])
+        else:
+            print(help_doc)
