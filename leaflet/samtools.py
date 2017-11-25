@@ -9,11 +9,6 @@ from hashlib import sha256
 from io import BytesIO
 
 
-default_sam_api = ('127.0.0.1', 7656)
-default_dgram_api = ('127.0.0.1', 7655)
-default_max_version = '3.0'
-default_timeout = 60.0
-
 def greet(max_version):
     return 'HELLO VERSION MIN=3.0 MAX=%s' % max_version
 
@@ -108,7 +103,7 @@ def line_generator(sock):
     yield partial
 
 
-class SamReply(object):
+class SAMReply(object):
     __slots__ = ('cmd', 'opts')
 
     def __init__(self, cmd = None, opts = None):
@@ -157,7 +152,7 @@ def sam_parse_reply(line):
     """parse a reply line into a dict"""
     parts = line.split(' ')
     opts = {k: v for (k, v) in split_kv(parts[2:])}
-    return SamReply(parts[0], opts)
+    return SAMReply(parts[0], opts)
 
 def sam_send(sock, line_and_data):
     """Send a line to the SAM controller, but don't read it"""
@@ -198,7 +193,11 @@ class ReachError(OSError):
     def __init__(self, msg):
         super().__init__(errno.EHOSTUNREACH, msg)
 
-def controller_connect(sam_api, timeout=default_timeout):
+class AcceptError(OSError):
+    def __init__(self, msg):
+        super().__init__(errno.EADDRNOTAVAIL, msg)
+
+def controller_connect(sam_api, timeout):
     sam_sock = pysocket.create_connection(sam_api)
     sam_sock.setsockopt(pysocket.IPPROTO_TCP, pysocket.SO_KEEPALIVE, 1)
     sam_sock.settimeout(timeout)
@@ -265,7 +264,6 @@ def session_create(sock, sock_type, sig_type, name, i2cp_options = None):
     if reply.ok:
         return reply['DESTINATION']
     else:
-        # TODO: different types of errors for different types of results from sam
         raise CreateDestError('Failed to create destination. %s' % repr(reply))
 
 def bind_datagram(binding):
@@ -292,7 +290,7 @@ def stream_accept(nickname):
     if reply.ok:
         yield from accept_dest_generator()
     else:
-        raise HandshakeError('Failed to accept %r because %r' % (nickname, reply))
+        raise AcceptError('Failed to accept %r because %r' % (nickname, reply))
 
 def accept_dest_generator():
     line = yield None

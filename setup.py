@@ -5,7 +5,7 @@ setup(
     version='0.0.3.dev1',
 
     description='Dead simple I2P SAM library',
-    long_description='Dead simple I2P SAM library. Download now and enjoy Garlic Routing today!',
+    long_description=open('README.rst').read(),
     url='https://github.com/MuxZeroNet/leaflet',
 
     author='MuxZeroNet',

@@ -2,6 +2,11 @@ from . import samtools
 from .usersocket import StreamSocket, DatagramSocket
 from socket import SHUT_RDWR
 
+default_sam_api = ('127.0.0.1', 7656)
+default_dgram_api = ('127.0.0.1', 7655)
+default_max_version = '3.0'
+default_timeout = 60.0
+
 def sam_handshake(func):
     def f(self, *args, **kwargs):
         sock = samtools.handshake(*self.handshake_args)
@@ -18,10 +23,10 @@ class Controller(object):
     __slots__ = ('sam_timeout', 'sam_api', 'dgram_api', 'max_version', 'ns_cache')
 
     def __init__(self,
-                 sam_timeout=60.0,
-                 sam_api=samtools.default_sam_api,
-                 dgram_api=samtools.default_dgram_api,
-                 max_version=samtools.default_max_version):
+                 sam_timeout=default_timeout,
+                 sam_api=default_sam_api,
+                 dgram_api=default_dgram_api,
+                 max_version=default_max_version):
         self.sam_timeout = sam_timeout
         self.sam_api = sam_api
         self.dgram_api = dgram_api
