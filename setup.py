@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='leaflet',
-    version='0.0.2',
+    version='0.0.3.dev1',
 
     description='Dead simple I2P SAM library',
     long_description='Dead simple I2P SAM library. Download now and enjoy Garlic Routing today!',
@@ -24,7 +24,7 @@ setup(
     ],
     keywords='I2P SAM socket',
 
-    packages=['leaflet'],
+    packages=['leaflet', 'leaflet.examples'],
     python_requires='>=3'
 )
 
