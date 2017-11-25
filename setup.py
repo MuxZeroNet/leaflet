@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='leaflet',
-    version='0.0.1',
+    version='0.0.2',
 
     description='Dead simple I2P SAM library',
     long_description='Dead simple I2P SAM library. Download now and enjoy Garlic Routing today!',
