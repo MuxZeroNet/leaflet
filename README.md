@@ -7,6 +7,8 @@ Dead simple I2P SAM library. Download now and enjoy Garlic Routing today!
 
 [Write a datagram client and a datagran server.](leaflet/examples/datagram.py)
 
+[Class reference](https://leaflet.readthedocs.io/)
+
 ## Examples to play with
 
 To run the demo, make sure you have two terminal windows open.
