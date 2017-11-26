@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='leaflet',
-    version='0.0.3.dev1',
+    version='0.0.3',
 
     description='Dead simple I2P SAM library',
     long_description=open('README.rst').read(),
