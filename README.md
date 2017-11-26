@@ -1,7 +1,31 @@
 # leaflet
 Dead simple I2P SAM library. Download now and enjoy Garlic Routing today!
 
+```bash
+pip install leaflet
+```
+
 ## How to use
+
+```python
+def hello_server(server_addr='server.b32.i2p'):
+    # test SAM connection
+    controller = Controller()
+
+    # create our "IP Address"
+    with controller.create_dest() as our_dest:
+        # connect to a remote destination and send our message
+        sock = our_dest.connect(server_addr)
+        # SAM will give us response headers when the connection is successful
+        sam_reply = sock.parse_headers()
+        # now we can send data
+        sock.sendall(b'Hello, there!')
+        # receive reply
+        real_reply = sock.recv(4096)
+
+        print(sam_reply, real_reply)
+        sock.close()
+```
 
 [Create identities, connect to a remote destination and accept data streams.](leaflet/examples/basic.py)
 
