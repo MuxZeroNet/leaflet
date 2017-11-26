@@ -1,48 +1,46 @@
-Tutorial: Writing a server using stream sockets
-===============================================
+Writing a server using stream sockets
+=====================================
 
 Make a Controller object.
 
 .. code-block:: Python
+    :linenos:
 
     controller = Controller()
 
-Create our Destination. Our Destination is our "IP Address" in the I2P network. Our Destination will be thrown away if it gets garbage collected, so we should keep the reference to our destination instance, and use it in a context manager.
+Create our Destination. Our Destination is our "IP Address" in the I2P network.
+
+Our Destination instance will be discarded once it gets garbage collected, so we should keep the reference to it, and use it in a context manager.
 
 .. code-block:: Python
+    :lineno-start: 2
 
     with controller.create_dest() as our_dest:
         print('Server address: ' + our_dest.base32 + '.b32.i2p')
 
-Tell SAM we need to accept connections. ``our_dest.register_accept`` returns a socket object.
+Tell SAM we need to accept connections. The method ``our_dest.register_accept`` tells SAM to accept connections. The return value ``conn`` is a socket object. This method will not block.
 
 .. code-block:: Python
+    :lineno-start: 4
 
-    with controller.create_dest() as our_dest:
-        print('Server address: ' + our_dest.base32 + '.b32.i2p')
-        # SAM will write to the conn socket
-        # when a data stream comes in
-        # this line will not block
         conn = our_dest.register_accept()
 
-Wait until a message comes in. When a message came in, strip the SAM response headers.
+SAM will write to the ``conn`` socket only when a data stream comes in. Wait until a message comes in. When a message came in, read and strip the SAM response headers.
+
+The method ``conn.parse_headers`` will block until a message comes in.
+
+Now a message comes in, but first we need to strip the SAM headers.
+
+.. code-block:: Python
+    :lineno-start: 5
+
+        addr = conn.parse_headers()
 
 Now we have the connection and the address. Pass them to a handler.
 
 .. code-block:: Python
+    :lineno-start: 6
 
-    with controller.create_dest() as our_dest:
-        print('Server address: ' + our_dest.base32 + '.b32.i2p')
-        # SAM will write to the conn socket
-        # when a data stream comes in
-        # this line will not block
-        conn = our_dest.register_accept()
-        # `conn.parse_headers` will block
-        # until a message comes in
-        # now a message comes in, but first we need to
-        # strip the SAM headers
-        addr = conn.parse_headers()
-        # pass them to a handler
         handler(addr, conn)
 
 Write the handler.
