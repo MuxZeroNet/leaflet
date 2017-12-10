@@ -5,30 +5,18 @@ class SourceError(OSError):
     def __init__(self, message):
         super().__init__(EACCES, message)
 
-def it_leaks(func):
-    def f(self, *args, **kwargs):
-        human_error = func(self, *args, **kwargs) +  \
-            ' Calling the original method will leak your packets.'
-        raise AttributeError(human_error)
-    return f
-
-def alt_func(alt_name):
-    def decorator(func):
-        def f(self, *args, **kwargs):
-            human_error = 'This is dangerous! Instead, use %s.%s %s' % (
-                self.__class__.__name__, alt_name, func(self, *args, **kwargs))
-            raise AttributeError(human_error)
-        return f
-    return decorator
 
 class WrappedSocket(object):
     """A python socket wrapped to expose I2P addresses instead of IP addresses"""
 
-    __passthru = ('type', 'proto', 'send', 'recv', 'sendall', 'sendfile',
-        'fileno', 'shutdown', 'detach', 'makefile', 'setsockopt',
-        'getsockopt','setblocking', 'settimeout')
-
     __slots__ = ('sock', 'controller', 'reply_generator')
+
+    __passthru = frozenset(('type', 'proto', 'send', 'recv', 'sendall', 'sendfile',
+        'fileno', 'shutdown', 'detach', 'makefile', 'setsockopt',
+        'getsockopt','setblocking', 'settimeout'))
+
+    __blocked = frozenset(('bind', 'listen', 'accept', 'connect',
+        'gethostbyname', 'gethostbyname_ex'))
 
     def __init__(self, sock, controller, parser):
         self.__class__._send_data(sock, parser)
@@ -47,6 +35,8 @@ class WrappedSocket(object):
         # print('End of sending SAM data')
 
     def __getattr__(self, name):
+        if name in self.__blocked:
+            raise AttributeError('Attribute %s is not applicable' % repr(name))
         if name not in self.__passthru:
             raise AttributeError('%r object has no attribute %r' % (self.__class__.__name__, name))
         return getattr(self.sock, name)
@@ -57,32 +47,6 @@ class WrappedSocket(object):
         else:
             return super().__setattr__(name, value)
 
-    def bind(self, *args, **kwargs):
-        human_error = 'Bind what? Use controller.register_accept instead'
-        raise AttributeError(human_error)
-
-    def listen(self, *args, **kwargs):
-        human_error = 'Use controller.register_accept instead'
-        raise AttributeError(human_error)
-
-    def accept(self, *args, **kwargs):
-        human_error = 'SAM socket is different. ' + \
-            'Use controller.register_accept to strip the SAM response, ' + \
-            'and %s.recv to receive data' % self.__class__.__name__
-        raise AttributeError(human_error)
-
-    def connect(self, *args, **kwargs):
-        human_error = 'This %s instance is connected to %s.' % (self.__class__.__name__, repr(self.sam_api))
-        human_error += ' To reach an I2P address, ask the controller to do it for you.'
-        raise AttributeError(human_error)
-
-    @it_leaks
-    def gethostbyname(self, *args, **kwargs):
-        return 'Use %s.lookup or controller.lookup instead.' % self.__class__.__name__
-
-    @it_leaks
-    def gethostbyname_ex(self, *args, **kwargs):
-        return 'Use %s.lookup controller.lookup instead.' % self.__class__.__name__
 
     @property
     def sam_api(self):
@@ -139,7 +103,7 @@ class StreamSocket(WrappedSocket):
 
 class DatagramSocket(WrappedSocket):
     __slots__ = ('name', 'forward_mode')
-    __blocked = ('recv', 'send', 'sendall', 'sendfile')
+    __blocked = frozenset(('recv', 'send', 'sendall', 'sendfile', 'sendto', 'recvfrom'))
 
     def __init__(self, sock, controller, name, parser):
         self.name = name
@@ -150,14 +114,6 @@ class DatagramSocket(WrappedSocket):
         if name in self.__blocked:
             raise AttributeError('%r object has no attribute %r' % (self.__class__.__name__, name))
         return super().__getattr__(name)
-
-    @alt_func('transmit')
-    def sendto(self, *args, **kwargs):
-        return 'to send a message to an I2P destination.'
-
-    @alt_func('collect')
-    def recvfrom(self, *args, **kwargs):
-        return 'to receive a message from the I2P UDP port.'
 
     @property
     def dgram_api(self):
