@@ -75,3 +75,5 @@ Write our client:
 
             print(sam_reply, real_reply)
             sock.close()
+
+    send('serveraddress.b32.i2p')

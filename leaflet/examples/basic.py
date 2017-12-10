@@ -22,7 +22,7 @@ def hi_there(server_addr = None):
     # create our "IP Address" so that they can reply
     our_dest = controller.create_dest()
     print('Our address: ' + our_dest.base32)
-    # perform NS lookup to get their full Destination (optional)
+    # perform NS lookup to get their full Destination (optional, see [1])
     their_dest = controller.lookup(server_addr or their_b32)
     print('Their full destination: ' + their_dest.base64)
 
@@ -48,7 +48,8 @@ def send_and_disappear(server_addr = None):
     # `create_dest` can be used in a `with` statement
     # to create throw-away Destinations
     with controller.create_dest() as our_dest:
-        # connect to a remote destination and send our message
+        # establish connection and send our message
+        # hey look, you can pass a "*.b32.i2p" address [1]
         sock = our_dest.connect(server_addr or their_b32)
         # SAM will give us response headers when the connection is successful
         sam_reply = sock.parse_headers()
